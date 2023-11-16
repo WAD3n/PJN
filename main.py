@@ -3,6 +3,7 @@ import string
 import re
 from collections import Counter
 import matplotlib as plt
+import numpy as np
 # zimportowanie ksiazek w formacie json
 ksiazka_aniol = requests.get('https://wolnelektury.pl/media/book/txt/aniol.txt')
 ksiazka_poetyka = requests.get('https://wolnelektury.pl/media/book/txt/arystoteles-poetyka.txt')
@@ -92,5 +93,19 @@ def term_frequency(dictionary):
         tf[key] = value/sum_values
     return tf
 
+def inverse_document_frequency(dictionary,d2,d3,d4,d5):
+    file = open('bag-of-words.txt','r')
+    idf = {}
+    occurence_in_files = 1
+    for key,value in dictionary.items():
+        if key in d2.keys():occurence_in_files  += 1
+        if key in d3.keys(): occurence_in_files += 1
+        if key in d4.keys(): occurence_in_files += 1
+        if key in d5.keys(): occurence_in_files += 1
+        idf[key] = np.log( 5 / occurence_in_files)
+    return idf
+
 aniol_tf = term_frequency(slownik_aniol)
+aniol_idf = inverse_document_frequency(slownik_aniol,slownik_poetyka,slownik_pies_bareselvilow,slownik_grozny_cien,slownik_dolina_trwogi)
 print(aniol_tf)
+print(aniol_idf)
