@@ -2,7 +2,7 @@ import requests
 import string
 import re
 from collections import Counter
-import matplotlib as plt
+import matplotlib.pyplot as plt
 import numpy as np
 # zimportowanie ksiazek w formacie json
 ksiazka_aniol = requests.get('https://wolnelektury.pl/media/book/txt/aniol.txt')
@@ -10,6 +10,7 @@ ksiazka_poetyka = requests.get('https://wolnelektury.pl/media/book/txt/arystotel
 ksiazka_pies_barkeselvilow = requests.get('https://wolnelektury.pl/media/book/txt/pies-baskervilleow.txt')
 ksiazka_grozny_cien = requests.get('https://wolnelektury.pl/media/book/txt/grozny-cien.txt')
 ksiazka_dolina_trwogi = requests.get('https://wolnelektury.pl/media/book/txt/doyle-dolina-trwogi.txt')
+polish_stopwords = requests.get('https://github.com/bieli/stopwords/blob/master/polish.stopwords.txt')
 # utworzenie pliku bag-of-chars
 bag_of_chars = open('bag-of-chars.txt','w')
 # zmienna place holder ustawiona na wartosc ASCII odpowiadajaca A
@@ -67,22 +68,21 @@ del slownik_poetyka['']
 del slownik_pies_bareselvilow['']
 del slownik_dolina_trwogi['']
 del slownik_grozny_cien['']
-#
-# all_dicts = [
-#     slownik_aniol,
-#     slownik_poetyka,
-#     slownik_pies_bareselvilow,
-#     slownik_dolina_trwogi,
-#     slownik_grozny_cien
-# ]
-# counters = [Counter(dictionary) for dictionary in all_dicts]
-# merged_counter = counters[0]
-# for counter in counters[1:]:
-#     merged_counter.update(counter)
-# korpus = dict(merged_counter)
-# korpus = dict(sorted(korpus.items(), key= lambda item: item[1],reverse=True))
-# for key, value in korpus.items():
-#     bag_of_words.write(f'{key}:{value}\n')
+all_dicts = [
+     slownik_aniol,
+     slownik_poetyka,
+     slownik_pies_bareselvilow,
+     slownik_dolina_trwogi,
+     slownik_grozny_cien
+ ]
+counters = [Counter(dictionary) for dictionary in all_dicts]
+merged_counter = counters[0]
+for counter in counters[1:]:
+    merged_counter.update(counter)
+korpus = dict(merged_counter)
+korpus = dict(sorted(korpus.items(), key= lambda item: item[1],reverse=True))
+for key, value in korpus.items():
+    bag_of_words.write(f'{key}:{value}\n')
 
 def term_frequency(dictionary):
     sum_values = 0
@@ -105,7 +105,29 @@ def inverse_document_frequency(dictionary,d2,d3,d4,d5):
         idf[key] = np.log( 5 / occurence_in_files)
     return idf
 
-aniol_tf = term_frequency(slownik_aniol)
-aniol_idf = inverse_document_frequency(slownik_aniol,slownik_poetyka,slownik_pies_bareselvilow,slownik_grozny_cien,slownik_dolina_trwogi)
-print(aniol_tf)
-print(aniol_idf)
+def draw_zipf_graph(dictionary,nazwa : string):
+    dictionary = dict(sorted(dictionary.items(), key= lambda item:item[1], reverse= True))
+    del dictionary['—']
+    print(dictionary)
+    keys = list(dictionary.keys())
+    values = list(dictionary.values())
+    ptr = []
+    ptr1 = []
+    for _ in range(10):
+        ptr.append(values[_]/(_+1))
+        ptr1.append(keys[_])
+    plt.plot(ptr1, ptr)
+    plt.title(f'Zipf Graph')
+    plt.xlabel('Rank')
+    plt.ylabel('Frequency')
+    plt.savefig('wykresy/' + nazwa)
+    plt.close()
+# aniol_tf = term_frequency(slownik_aniol)
+# aniol_idf = inverse_document_frequency(slownik_aniol,slownik_poetyka,slownik_pies_bareselvilow,slownik_grozny_cien,slownik_dolina_trwogi)
+# print(aniol_tf)
+# print(aniol_idf)
+draw_zipf_graph(slownik_aniol,'aniol')
+draw_zipf_graph(slownik_poetyka,'poetyka')
+draw_zipf_graph(slownik_pies_bareselvilow,'pies')
+draw_zipf_graph(slownik_grozny_cien,'grozny')
+draw_zipf_graph(slownik_dolina_trwogi,'dolina')
