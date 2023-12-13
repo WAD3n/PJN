@@ -139,3 +139,23 @@ def tf_idf(dictionary,tf,idf):
     _ = 0
     return ptr
 
+wyszystkie_rzeczowniki = []
+for _ in korpus:
+    licznik.update([token.lemma_ for token in _ if token.pos_ == 'NOUN'])
+    nouns.append(licznik)
+tfidf = []
+for _ in wyszystkie_rzeczowniki:
+    tfidf.append(''.join(_))
+
+sciana_tekstu = [''.join(_) for _ in wyszystkie_rzeczowniki]
+for _ in range(len(korpus)):
+    vectorizer = CountVectorizer()
+    bow_matrix = vectorizer.fit_transform(sciana_tekstu)
+    tfidf_transformer = TfidfTransformer()
+    tfidf_matrix = tfidf_transformer.fit_transform(bow_matrix)
+    y = dict(zip(vectorizer.get_feature_names_out(), tfidf_matrix.toarray()[i]))
+    wordcloud = WordCloud(width=1920, height=1080, background_color='blue').generate_from_frequencies(y)
+
+    plt.imshow(wordcloud, interpolation='bilinear')
+    plt.title(f"Chmura tagów {_ + 1}")
+    plt.show()
